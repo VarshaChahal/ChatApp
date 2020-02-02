@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Chat App Node</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+           *{
+               padding: 10px 10px 10px 10px;
+           }
+           body { font: 13px Helvetica, Arial; }
+            form { background: #fff; padding: 3px; position: fixed; bottom: 0; width: 95%; border-color: #000; border-top-style: solid; border-top-width: 1px;}
+            form input { border-style: solid; border-width: 1px; padding: 10px; width: 85%; margin-right: .5%; }
+            form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; margin-left: 1%; }
+            #chatArea{
+                width: 100%;
+                position: relative;
+                height: 90%;
+                
+            }
+            #header{
+                text-align: center;
+                font-size: 20px;
+                padding-top: -5px;
+                background-color: grey;
+            }
+      
+            #chatArea li{
+                list-style: none;
+                height: 20px;
+                margin: 10px;
+            }
+            #chatArea li div{
+                border-radius: 10px;
+
+            }
+            .owner{
+                float: right;
+            }
+            .sender{
+                float: left;
+            }
+            </style>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="../../socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+        </script>
+
+    </head>
+    <body>
+        <div id="main">
+            <div id="header">
+                 <!-- <svg class="bi bi-three-dots-vertical" width="10" height="10" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z" clip-rule="evenodd"/></svg> -->
+            </div>        
+            <div id="chatArea">
+                
+            </div>
+            <div id="messageBox">
+                <form action="/" method="POST" id="msgForm">
+                    <input id="msg" autocomplete="off" autofocus="on"/>
+                  <!--  <svg class="bi bi-chevron-compact-up" width="10" height="10" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z" clip-rule="evenodd"/></svg> -->
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+
+        </div>
+        
+        <script src="" async defer></script>
+    </body>
+    <script>
+        var username = prompt('enter username');
+        socket.emit('username',username);
+        
+        $('form').submit(function(e){
+            e.preventDefault();
+            socket.emit('chat_message',$('#msg').val(),username);
+            $('#msg').val('');
+            return false;
+        });
+
+        var typing = false;
+        var timeout=undefined;
+
+        $('#msg').keydown(function(){
+            onKeyDown();
+        });
+        function onKeyDown(){
+            if(typing == false){
+                typing= true;
+                socket.emit('typing',username);
+                timeout = setTimeout(timeOutFunction,5000);
+            }
+            else{
+                clearTimeout(timeout);
+                timeout = setTimeout(timeOutFunction,5000);
+            }
+        }
+
+        function timeOutFunction(){
+            socket.emit('typing',username);
+        }
+
+        socket.on('is_online',function(username){
+            $('#header').append($('<li>').html(username));
+        });
+
+        socket.on('chat_message',function(message,sender){
+            let li = $('<li>');
+            let div = $('<div>');
+            if(sender == username){
+                div.addClass('owner');
+                div.css('background-color',' #ccff99');
+            }
+            else{
+                div.addClass('sender');
+                div.css('background-color',' #ccffff');
+            }
+
+            $('#chatArea').append(li.append(div.html(message)));
+          
+            console.log(username + 'is the owner of this window');
+            console.log(sender+' sent the message');
+        });
+        
+    </script>
+</html>
